@@ -29,21 +29,27 @@ const configuration = {
   ]
 };
 
-const ws = new WebSocket('ws://192.168.0.90:8443/signaling');
+const url = 'ws://192.168.0.90:8443/signaling'
+
+let ws;
 
 /*
  * Definition of functions
  */
 
-function getLocalStream(callback) {
-  getUserMedia({
-    audio: true,
-    video: false
-  }, function(stream) {
-    console.log('getUserMedia success', stream);
-    callback(stream);
-  }, logError);
-}
+ function getUserMediaConstraints() {
+   let constraints = {};
+   constraints.audio = true;
+   constraints.video = false;
+   return constraints;
+ }
+
+ function getLocalStream(callback) {
+   getUserMedia(getUserMediaConstraints(), function(stream) {
+     console.log('getUserMedia success', stream);
+     callback(stream);
+   }, logError);
+ }
 
 function onError(error) {
   console.error(error);
@@ -149,62 +155,74 @@ function stop() {
   }
 }
 
-/*
- * Management of WebSocket messages
- */
 
-ws.onopen = () => {
-  // connection opened
-  console.log('Websocket Connected');
-  getLocalStream(function(stream) {
-    localStream = stream;
-    container.setState({isOnline: true});
+function initialize(){
+  ws = new WebSocket(url);
 
-  });
-};
+  /*
+   * Management of WebSocket messages
+   */
 
-ws.onmessage = (message) => {
-  // a message was received
-  let parsedMessage = JSON.parse(message.data);
-  console.log('Received message: ' + message.data);
+  ws.onopen = () => {
+    // connection opened
+    console.log('Websocket Connected');
+    getLocalStream(function(stream) {
+      localStream = stream;
+      container.setState({isOnline: true});
+    });
+  };
 
-  switch (parsedMessage.id) {
-    case 'startResponse':
-      startResponse(parsedMessage);
-      break;
-    case 'error':
-      onError('Error message from server: ' + parsedMessage.message);
-      break;
-    case 'iceCandidate':
-      const iceCandidate = new RTCIceCandidate(parsedMessage.candidate);
+  ws.onmessage = (message) => {
+    // a message was received
+    let parsedMessage = JSON.parse(message.data);
+    console.log('Received message: ' + message.data);
 
-      if (peerconnection) {
-        peerconnection.addIceCandidate(iceCandidate);
-      }
+    switch (parsedMessage.id) {
+      case 'startResponse':
+        startResponse(parsedMessage);
+        break;
+      case 'error':
+        onError('Error message from server: ' + parsedMessage.message);
+        break;
+      case 'iceCandidate':
+        const iceCandidate = new RTCIceCandidate(parsedMessage.candidate);
 
-      iceCandidates.push(iceCandidate);
-      break;
-    default:
-      onError('Unrecognized message', parsedMessage);
-  }
+        if (peerconnection) {
+          peerconnection.addIceCandidate(iceCandidate);
+        }
 
-};
+        iceCandidates.push(iceCandidate);
+        break;
+      default:
+        onError('Unrecognized message', parsedMessage);
+    }
 
-ws.onerror = (e) => {
-  // an error occurred
-  console.log(e.message);
-};
+  };
 
-ws.onclose = (e) => {
-  // connection closed
-  container.setState({isOnline: false});
-  console.log(e.code, e.reason);
-};
+  ws.onerror = (e) => {
+    // an error occurred
+    console.log(e.message);
+  };
+
+  ws.onclose = (e) => {
+    // connection closed
+    console.log('Connection Closed');
+    container.setState({isOnline: false});
+    console.log('Reconnecting...');
+    setTimeout(function(){initialize()}, 3000);
+
+  };
+}
+
 
 /*
  * Component Class
  */
 class App extends Component {
+
+  componentWillMount(){
+   initialize();
+  }
 
   constructor(props) {
     super(props);
