@@ -3428,6 +3428,13 @@ react-devtools-core@^2.5.0:
     shell-quote "^1.6.1"
     ws "^2.0.3"
 
+react-native-webrtc@^1.58.2:
+  version "1.58.2"
+  resolved "https://registry.yarnpkg.com/react-native-webrtc/-/react-native-webrtc-1.58.2.tgz#c67b691093d34c54699f38c0ff110ba3a5615e24"
+  dependencies:
+    base64-js "^1.1.2"
+    event-target-shim "^1.0.5"
+
 react-native@0.48.2:
   version "0.48.2"
   resolved "https://registry.yarnpkg.com/react-native/-/react-native-0.48.2.tgz#9907d5a73640ade3920701e7096fc109ba9cc6e4"
