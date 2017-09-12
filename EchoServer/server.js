@@ -104,7 +104,6 @@ wss.on('connection', function(ws) {
             break;
 
         case 'onIceCandidate':
-            console.log('MESSAGE.CANDIDATE',message.candidate);
             onIceCandidate(sessionId, message.candidate);
             break;
 
