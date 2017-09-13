@@ -24,9 +24,14 @@ WebRTC and Kurento Media Server Integration Demo for React-Native
 - cd EchoClient
 - npm install
 - react-native start
+
+For Android:
 - react-native run-android
 
-note: for iOS, checkout the react-native-webrtc setup instructions.
+For iOS:
+- react-native run-ios
+
+
 
 ## License
 
